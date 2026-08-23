@@ -1,0 +1,245 @@
+:root {
+  --paper: #F3F6F1;
+  --paper-card: #FFFFFF;
+  --ink: #1F2A24;
+  --ink-muted: #667169;
+  --green: #1B6B4A;
+  --green-dark: #124E36;
+  --accent: #E4572E;
+  --border: #DCE3D8;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Heebo", sans-serif;
+  font-feature-settings: "tnum" 1;
+  line-height: 1.5;
+}
+
+/* ---------------- Header ---------------- */
+.site-header {
+  background: var(--green-dark);
+  color: #F3F6F1;
+  padding: 2.25rem 1.5rem 1.5rem;
+}
+.header-inner { max-width: 760px; margin: 0 auto; text-align: center; }
+.brand {
+  font-family: "Frank Ruhl Libre", serif;
+  font-weight: 900;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+.brand-accent { color: var(--accent); }
+.tagline {
+  margin: 0.4rem 0 0;
+  color: #C9D8CE;
+  font-size: 0.95rem;
+}
+.stats-bar {
+  max-width: 760px;
+  margin: 1.25rem auto 0;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius);
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  color: #DDE8E0;
+  text-align: center;
+}
+.stats-bar strong { color: #fff; }
+
+/* ---------------- Search ---------------- */
+.search-hero {
+  max-width: 640px;
+  margin: -1rem auto 0;
+  padding: 1.5rem;
+  background: var(--paper-card);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(18,78,54,0.12);
+  position: relative;
+  z-index: 2;
+}
+.search-label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.search-box { display: flex; gap: 0.5rem; }
+#search-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  background: var(--paper);
+}
+#search-input:focus {
+  outline: none;
+  border-color: var(--green);
+}
+#search-btn {
+  padding: 0.75rem 1.5rem;
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+#search-btn:hover { background: var(--green-dark); }
+.search-hint {
+  margin: 0.6rem 0 0;
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+}
+
+/* ---------------- Results (receipt style) ---------------- */
+.results {
+  max-width: 640px;
+  margin: 1.5rem auto;
+  padding: 0 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.result-row {
+  background: var(--paper-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.result-row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(18,78,54,0.10);
+  border-color: var(--green);
+}
+.receipt-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+.receipt-line .name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 65%;
+}
+.receipt-line .dots {
+  flex: 1;
+  border-bottom: 2px dotted var(--border);
+  height: 0.6em;
+  margin-bottom: 0.15em;
+}
+.receipt-line .price {
+  font-weight: 900;
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+.result-meta {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+}
+.result-meta .best-tag {
+  color: var(--green);
+  font-weight: 700;
+}
+.empty-state, .error-state {
+  text-align: center;
+  color: var(--ink-muted);
+  padding: 2rem 1rem;
+}
+.error-state { color: var(--accent); }
+
+/* ---------------- Compare panel ---------------- */
+.compare-panel {
+  max-width: 640px;
+  margin: 0 auto 2rem;
+  padding: 1.5rem;
+  background: var(--paper-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  position: relative;
+}
+.compare-panel.hidden { display: none; }
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+#compare-title {
+  font-family: "Frank Ruhl Libre", serif;
+  margin: 0 0 1rem;
+  padding-left: 4rem;
+}
+.compare-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.compare-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  background: var(--paper);
+}
+.compare-row.cheapest {
+  background: #E7F3EC;
+  border: 1px solid var(--green);
+}
+.compare-row .store {
+  font-weight: 700;
+  white-space: nowrap;
+}
+.compare-row .city { color: var(--ink-muted); font-size: 0.8rem; }
+.compare-row .cdots { flex: 1; border-bottom: 2px dotted var(--border); height: 0.6em; margin-bottom: 0.15em; }
+.compare-row .cprice { font-weight: 900; white-space: nowrap; }
+.compare-row .promo-badge {
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  margin-inline-start: 0.4rem;
+}
+.ribbon {
+  display: inline-block;
+  background: var(--green);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  margin-inline-start: 0.5rem;
+}
+
+/* ---------------- Footer ---------------- */
+.site-footer {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .search-box { flex-direction: column; }
+  .receipt-line .name { max-width: 55%; }
+}

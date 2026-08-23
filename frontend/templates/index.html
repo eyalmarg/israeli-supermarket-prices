@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>השוואת מחירי סופרמרקטים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <h1 class="brand">מחיר<span class="brand-accent">·</span>עגלה</h1>
+    <p class="tagline">השוואת מחירי סופר, ישירות מקובצי שקיפות המחירים הרשמיים</p>
+  </div>
+  <div id="stats-bar" class="stats-bar">טוען נתוני מסד...</div>
+</header>
+
+<main>
+  <section class="search-hero">
+    <label for="search-input" class="search-label">מה מחפשים היום?</label>
+    <div class="search-box">
+      <input id="search-input" type="text" placeholder="למשל: חלב 3% תנובה, קוטג׳, לחם אחיד..." autocomplete="off">
+      <button id="search-btn" type="button">חפש</button>
+    </div>
+    <p class="search-hint">הקלידו לפחות 2 תווים · התוצאות ממוינות לפי מספר הרשתות שמוכרות את הפריט</p>
+  </section>
+
+  <section id="results" class="results" aria-live="polite"></section>
+
+  <section id="compare-panel" class="compare-panel hidden">
+    <button id="close-compare" class="close-btn" type="button">✕ סגירה</button>
+    <h2 id="compare-title"></h2>
+    <div id="compare-list" class="compare-list"></div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p>
+    הנתונים נאספים מקובצי המחירים שכל רשת מחויבת לפרסם לפי
+    חוק קידום התחרות בענפי המזון והפארם (חוק שקיפות מחירים).
+    כלי אישי/מקומי — לא לשימוש מסחרי. המחירים עשויים להשתנות ולא תמיד עדכניים לרגע זה.
+  </p>
+</footer>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
