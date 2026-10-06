@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "etl"))
 sys.path.insert(0, HERE)
 
 import sample_dumps  # noqa: E402
-from load import find_dump_files  # noqa: E402
+from aggregate import aggregate_chain, find_price_files  # noqa: E402
 from xml_reader import file_kind, read_prices, read_stores  # noqa: E402
 
 
@@ -28,12 +28,24 @@ def test_file_kind_skips_promotions_and_partial_updates():
     assert file_kind("Price7290027600007-001-202610061000.xml") is None
 
 
-def test_find_dump_files_only_stores_and_pricefull(tmp_path):
-    files = find_dump_files(str(_build(tmp_path)))
-    names = [os.path.basename(f[2]) for f in files]
-    assert not any(n.startswith(("Promo", "Price7")) for n in names)
-    assert sum(1 for f in files if f[0] == "prices") == 6
-    assert sum(1 for f in files if f[0] == "stores") == 3
+def test_find_price_files_only_pricefull(tmp_path):
+    base = _build(tmp_path)
+    names = [os.path.basename(p) for _ts, p in find_price_files(str(base / "Shufersal"))]
+    assert len(names) == 3
+    assert all(n.startswith("PriceFull") for n in names)
+
+
+def test_aggregate_chain_uses_newest_file_per_store(tmp_path):
+    base = _build(tmp_path)
+    rows, store_count, data_date = aggregate_chain(str(base / "Shufersal"))
+    by_code = {r["item_code"]: r for r in rows}
+    assert store_count == 2
+    assert data_date.day == 6
+    milk = by_code[sample_dumps.MILK]
+    # סניף 1: 7.10 (הקובץ הישן עם 9.99 מדולג), סניף 2: 6.80
+    assert (milk["min_price"], milk["median_price"], milk["max_price"]) == (6.80, 6.95, 7.10)
+    assert milk["store_count"] == 2
+    assert sample_dumps.TOMATO_INTERNAL not in by_code
 
 
 def test_read_prices_shufersal(tmp_path):

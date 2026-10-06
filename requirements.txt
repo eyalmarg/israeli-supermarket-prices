@@ -6,8 +6,3 @@ lxml>=5.0
 
 # ---- מסד נתונים ----
 psycopg2-binary>=2.9
-SQLAlchemy>=2.0
-
-# ---- שרת/API ----
-Flask>=3.0
-python-dotenv>=1.0
