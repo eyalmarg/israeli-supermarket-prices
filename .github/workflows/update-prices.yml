@@ -1,0 +1,82 @@
+# עדכון יומי של המחירים: כל רשת מורדת ומסוכמת בג'וב נפרד (במקביל),
+# ובסוף נבנה מחדש קטלוג המוצרים לחיפוש.
+#
+# דורש secret בשם DATABASE_URL (Settings → Secrets and variables → Actions)
+# עם מחרוזת החיבור "Session pooler" של Supabase.
+name: Update prices
+
+on:
+  schedule:
+    - cron: "17 2 * * *"   # כל יום ב-02:17 UTC (בערך 05:17 שעון ישראל)
+  workflow_dispatch:
+    inputs:
+      chains:
+        description: "רשתות לעדכון, מופרדות ברווח (ריק = כולן), למשל: SHUFERSAL RAMI_LEVY"
+        required: false
+        default: ""
+
+concurrency:
+  group: update-prices
+  cancel-in-progress: false
+
+jobs:
+  list:
+    runs-on: ubuntu-latest
+    outputs:
+      chains: ${{ steps.list.outputs.chains }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - id: list
+        env:
+          REQUESTED: ${{ inputs.chains }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from il_supermarket_scarper import ScraperFactory
+          requested = os.environ.get("REQUESTED", "").upper().split()
+          chains = requested or ScraperFactory.all_scrapers_name()
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write("chains=" + json.dumps(chains) + "\n")
+          PY
+
+  chain:
+    needs: list
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        chain: ${{ fromJson(needs.list.outputs.chains) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Download and publish ${{ matrix.chain }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python etl/publish.py "${{ matrix.chain }}"
+
+  finalize:
+    needs: chain
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Rebuild product catalog
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python etl/publish.py --finalize

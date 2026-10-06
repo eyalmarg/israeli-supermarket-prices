@@ -106,23 +106,6 @@ body {
   transition: background 0.15s ease;
 }
 #search-btn:hover { background: var(--green-dark); }
-.city-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-  font-size: 0.9rem;
-}
-#city-select {
-  flex: 1;
-  max-width: 260px;
-  padding: 0.45rem 0.6rem;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  background: var(--paper);
-  font: inherit;
-  color: inherit;
-}
 .search-hint {
   margin: 0.6rem 0 0;
   font-size: 0.8rem;

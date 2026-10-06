@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -26,12 +26,6 @@
     <div class="search-box">
       <input id="search-input" type="search" placeholder="למשל: חלב 3% תנובה, קוטג׳, או ברקוד" autocomplete="off">
       <button id="search-btn" type="button">חיפוש</button>
-    </div>
-    <div class="city-row">
-      <label for="city-select">אזור:</label>
-      <select id="city-select">
-        <option value="">כל הארץ</option>
-      </select>
     </div>
     <p class="search-hint">אפשר לחפש לפי כמה מילים (כולן יופיעו בשם או ביצרן) · התוצאות ממוינות לפי מספר הרשתות שמוכרות את המוצר</p>
   </section>
@@ -64,11 +58,12 @@
     הנתונים נאספים מקובצי המחירים שכל רשת מחויבת לפרסם לפי
     <a href="https://www.gov.il/he/pages/cpfta_prices_regulations" target="_blank" rel="noopener">חוק קידום התחרות בענף המזון (שקיפות מחירים)</a>.
     מוצגים המחירים הרגילים על המדף בלבד — מבצעים לא נכללים.
-    המחירים עשויים להשתנות ולא תמיד עדכניים לרגע זה.
+    לכל רשת מוצג המחיר הזול, החציוני והיקר מבין כל הסניפים שלה; הנתונים מתעדכנים פעם ביום.
   </p>
   <p id="chains-list" class="chains-list"></p>
 </footer>
 
-<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

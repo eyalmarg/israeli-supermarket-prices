@@ -1,99 +1,53 @@
 """
-שלב 1: הורדת קובצי המחירים הגולמיים (XML) מאתרי רשתות השיווק, לפי
-רשימת הקישורים שמפורסמת ב-gov.il (חוק שקיפות מחירים):
+הורדת קובצי המחירים הגולמיים (XML) מאתרי רשתות השיווק, לפי רשימת
+הקישורים שמפורסמת ב-gov.il (חוק שקיפות מחירים):
 https://www.gov.il/he/pages/cpfta_prices_regulations
 
-משתמש בחבילת הקוד-הפתוח החינמית il_supermarket_scarper:
+משתמש בחבילת הקוד-הפתוח il_supermarket_scarper:
 https://github.com/OpenIsraeliSupermarkets/israeli-supermarket-scarpers
 
-מורידים רק שני סוגי קבצים:
-  * Stores    — רשימת הסניפים (שם, כתובת, עיר)
-  * PriceFull — המחיר הרגיל של כל מוצר בכל סניף (תמונת מצב מלאה)
+מורידים רק קובצי PriceFull — המחיר הרגיל של כל מוצר בכל סניף.
 קובצי מבצעים (Promo / PromoFull) לא מורדים בכלל.
-
-הרצה:
-    python etl/download.py
-
-הגדרות (אופציונלי) דרך .env או משתני סביבה:
-    ENABLED_SCRAPERS    - רשימת רשתות מופרדת בפסיקים, למשל SHUFERSAL,RAMI_LEVY
-                          (ברירת מחדל: כל הרשתות)
-    LIMIT               - מספר קבצים מקסימלי לכל רשת (לבדיקה מהירה)
-    NUMBER_OF_PROCESSES - מספר רשתות שמורדות במקביל (ברירת מחדל: 4)
-    KEEP_OLD_DUMPS      - 1 כדי לא למחוק הורדות קודמות לפני ההורדה
 """
 
 import os
 import shutil
-import sys
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
-DUMPS_FOLDER = os.environ.get("DUMPS_FOLDER", "dumps")
-FILE_TYPES = ["STORE_FILE", "PRICE_FULL_FILE"]
+PRICE_FILE_TYPES = ["PRICE_FULL_FILE"]
 
 
-def _env_list(name):
-    value = os.environ.get(name, "").strip()
-    return [x.strip().upper() for x in value.split(",") if x.strip()] or None
+def all_chains():
+    from il_supermarket_scarper import ScraperFactory
+
+    return ScraperFactory.all_scrapers_name()
 
 
-def main():
-    try:
-        from il_supermarket_scarper import ScarpingTask, ScraperFactory
-    except ImportError:
-        print("חסרה החבילה il-supermarket-scraper. הריצו: pip install -r requirements.txt")
-        sys.exit(1)
+def chain_folder(chain_key):
+    """שם התיקייה שהסקרייפר יוצר לרשת, למשל RAMI_LEVY -> RamiLevy"""
+    from il_supermarket_scarper import DumpFolderNames
 
-    scrapers = _env_list("ENABLED_SCRAPERS")
-    if scrapers:
-        known = set(ScraperFactory.all_scrapers_name())
-        unknown = [s for s in scrapers if s not in known]
-        if unknown:
-            print(f"רשתות לא מוכרות: {unknown}")
-            print(f"האפשרויות הן: {sorted(known)}")
-            sys.exit(1)
+    return DumpFolderNames[chain_key].value
 
-    limit = os.environ.get("LIMIT", "").strip()
-    limit = int(limit) if limit else None
-    processes = int(os.environ.get("NUMBER_OF_PROCESSES", "4"))
 
-    # כל הורדה היא תמונת מצב טרייה: מוחקים קבצים ישנים (וגם את קובצי
-    # הסטטוס של הסקרייפר, אחרת הוא ידלג על קבצים שכבר "ראה").
-    if os.path.isdir(DUMPS_FOLDER) and os.environ.get("KEEP_OLD_DUMPS") != "1":
-        shutil.rmtree(DUMPS_FOLDER)
-    os.makedirs(DUMPS_FOLDER, exist_ok=True)
+def download_chain(chain_key, dumps_folder, limit=None, timeout_seconds=60 * 45):
+    """מוריד את קובצי PriceFull של רשת אחת לתיקייה נקייה. מחזיר את נתיב התיקייה."""
+    from il_supermarket_scarper import ScarpingTask
 
-    print(f"מוריד קובצי סניפים ומחירים מלאים לתיקייה: {os.path.abspath(DUMPS_FOLDER)}")
-    print(f"רשתות: {', '.join(scrapers) if scrapers else 'כולן'}")
-    print("זה יכול לקחת זמן (עשרות רשתות, מאות סניפים) — יש סבלנות...")
+    if os.path.isdir(dumps_folder):
+        shutil.rmtree(dumps_folder)
+    os.makedirs(dumps_folder)
 
     task = ScarpingTask(
-        enabled_scrapers=scrapers,
-        files_types=FILE_TYPES,
-        multiprocessing=processes,
-        output_configuration={"output_mode": "disk", "base_storage_path": DUMPS_FOLDER},
+        enabled_scrapers=[chain_key],
+        files_types=PRICE_FILE_TYPES,
+        multiprocessing=1,
+        output_configuration={"output_mode": "disk", "base_storage_path": dumps_folder},
         status_configuration={
             "database_type": "json",
-            "base_path": os.path.join(DUMPS_FOLDER, "status"),
+            "base_path": os.path.join(dumps_folder, "status"),
         },
+        timeout_in_seconds=timeout_seconds,
     )
     task.start(limit=limit)
     task.join()
-
-    xml_count = sum(
-        1
-        for _root, _dirs, files in os.walk(DUMPS_FOLDER)
-        for f in files
-        if not f.endswith(".json")
-    )
-    print(f"הורדה הושלמה: {xml_count} קבצים.")
-    if xml_count == 0:
-        print("לא הורד אף קובץ. שימו לב: חלק מאתרי הרשתות חסומים לגלישה מחוץ לישראל.")
-        sys.exit(1)
-    print("השלב הבא: python etl/load.py")
-
-
-if __name__ == "__main__":
-    main()
+    return os.path.join(dumps_folder, chain_folder(chain_key))

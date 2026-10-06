@@ -24,7 +24,7 @@ CHAIN_DISPLAY_NAMES = {
     "MahsaniAShukNewSource": "מחסני השוק",
     "NetivHased": "נתיב החסד",
     "MeshnatYosef1": "משנת יוסף",
-    "MeshnatYosef2": "משנת יוסף",
+    "MeshnatYosef2": "משנת יוסף 2",
     "Osherad": "אושר עד",
     "Polizer": "פוליצר",
     "RamiLevy": "רמי לוי",
