@@ -18,7 +18,7 @@ async function rpc(fn, args) {
   const { SUPABASE_URL, SUPABASE_KEY } = window.APP_CONFIG;
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
     method: "POST",
-    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
+    headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
     body: JSON.stringify(args || {}),
   });
   if (!res.ok) throw new Error(`${fn}: ${res.status}`);
