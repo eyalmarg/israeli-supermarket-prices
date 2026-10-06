@@ -1,101 +1,87 @@
 -- ============================================================
--- סכמת מסד נתונים: מחירי סופרמרקטים בישראל
--- 3 טבלאות, כל אחת מהווה UNION של הנתונים מכל הרשתות,
--- עם עמודת supermarket_name שמזהה מאיזו רשת הגיעה כל שורה.
+-- סכמת מסד נתונים: מחירי סופרמרקטים בישראל (מחירים רגילים בלבד)
+--
+-- המקור: קובצי Stores ו-PriceFull שכל רשת מפרסמת לפי חוק שקיפות
+-- המחירים. קובצי המבצעים (Promo/PromoFull) לא נטענים בכלל, כך
+-- שכל מחיר באתר הוא המחיר הרגיל על המדף (ItemPrice).
 -- ============================================================
 
-CREATE EXTENSION IF NOT EXISTS pg_trgm;  -- לחיפוש טקסט מהיר (LIKE / ILIKE)
+CREATE EXTENSION IF NOT EXISTS pg_trgm;  -- חיפוש טקסט מהיר (ILIKE)
 
 -- ------------------------------------------------------------
--- 1) חנויות (Union של קובצי "Stores" מכל הרשתות)
+-- 1) סניפים — מקובצי Stores
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS stores (
-    id                BIGSERIAL PRIMARY KEY,
-    supermarket_name  TEXT NOT NULL,          -- שם הרשת המנורמל, למשל 'שופרסל'
-    chain_id          TEXT,
+    chain_id          TEXT NOT NULL,          -- מזהה רשת (GLN, 13 ספרות)
+    store_id          TEXT NOT NULL,          -- מספר סניף בתוך הרשת (בלי אפסים מובילים)
+    supermarket_name  TEXT NOT NULL,          -- שם הרשת בעברית, למשל 'שופרסל'
     sub_chain_id      TEXT,
-    store_id          TEXT NOT NULL,
-    store_type        TEXT,
+    sub_chain_name    TEXT,                   -- תת-רשת, למשל 'שופרסל דיל'
     store_name        TEXT,
     address           TEXT,
     city              TEXT,
-    zip_code          TEXT,
-    last_update       TIMESTAMP,
-    source_file       TEXT,                   -- שם קובץ המקור (למעקב/דיבוג)
+    source_file       TEXT,
     loaded_at         TIMESTAMP NOT NULL DEFAULT now(),
-    UNIQUE (supermarket_name, chain_id, sub_chain_id, store_id)
+    PRIMARY KEY (chain_id, store_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_stores_supermarket ON stores (supermarket_name);
-CREATE INDEX IF NOT EXISTS idx_stores_city        ON stores (city);
+CREATE INDEX IF NOT EXISTS idx_stores_city ON stores (city);
 
 -- ------------------------------------------------------------
--- 2) מחירים (Union של קובצי "PriceFull/Price" מכל הרשתות)
+-- 2) מחירים — מקובצי PriceFull (תמונת מצב מלאה לכל סניף)
+--    שורה אחת לכל (רשת, סניף, מוצר). טעינה חוזרת מחליפה את
+--    כל המחירים של הסניף בתמונת המצב החדשה.
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS prices (
-    id                    BIGSERIAL PRIMARY KEY,
+    chain_id              TEXT NOT NULL,
+    store_id              TEXT NOT NULL,
+    item_code             TEXT NOT NULL,      -- ברקוד
     supermarket_name      TEXT NOT NULL,
-    chain_id              TEXT,
-    sub_chain_id          TEXT,
-    store_id              TEXT,
-    item_code             TEXT NOT NULL,
-    item_type             TEXT,
     item_name             TEXT,
     manufacturer_name     TEXT,
-    manufacture_country   TEXT,
-    unit_qty              TEXT,
-    quantity              NUMERIC(12,3),
-    unit_of_measure       TEXT,
-    is_weighted           BOOLEAN,
-    qty_in_package        NUMERIC(12,3),
-    item_price            NUMERIC(12,2),
+    quantity              NUMERIC(12,3),      -- כמות באריזה (למשל 1.000)
+    unit_qty              TEXT,               -- יחידת הכמות (ליטר / ק"ג / יחידה...)
+    unit_of_measure       TEXT,               -- יחידה למחיר ליחידה (למשל '100 גרם')
+    is_weighted           BOOLEAN,            -- מוצר שקיל: המחיר הוא לק"ג
+    item_price            NUMERIC(12,2) NOT NULL,  -- המחיר הרגיל
     unit_of_measure_price NUMERIC(12,2),
-    allow_discount        BOOLEAN,
-    item_status           TEXT,
     price_update_date     TIMESTAMP,
-    source_file           TEXT,
-    loaded_at             TIMESTAMP NOT NULL DEFAULT now()
+    PRIMARY KEY (chain_id, store_id, item_code)
 );
 
-CREATE INDEX IF NOT EXISTS idx_prices_supermarket ON prices (supermarket_name);
-CREATE INDEX IF NOT EXISTS idx_prices_item_code   ON prices (item_code);
-CREATE INDEX IF NOT EXISTS idx_prices_store       ON prices (supermarket_name, store_id);
-CREATE INDEX IF NOT EXISTS idx_prices_item_name_trgm ON prices USING gin (item_name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_prices_item_code ON prices (item_code);
 
 -- ------------------------------------------------------------
--- 3) מבצעים (Union של קובצי "PromoFull/Promo" מכל הרשתות)
+-- 3) קטלוג מוצרים — טבלה נגזרת מ-prices, נבנית מחדש בסוף כל טעינה.
+--    משמשת לחיפוש מהיר בלי לסרוק עשרות מיליוני שורות.
 -- ------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS promotions (
-    id                      BIGSERIAL PRIMARY KEY,
-    supermarket_name        TEXT NOT NULL,
-    chain_id                TEXT,
-    sub_chain_id             TEXT,
-    store_id                TEXT,
-    promotion_id             TEXT,
-    promotion_description    TEXT,
-    item_code                TEXT,
-    discounted_price          NUMERIC(12,2),
-    discount_rate             NUMERIC(6,2),
-    min_qty                   NUMERIC(12,3),
-    max_qty                   NUMERIC(12,3),
-    promotion_start_date      TIMESTAMP,
-    promotion_end_date        TIMESTAMP,
-    club_id                    TEXT,           -- מבצע מועדון (אם רלוונטי)
-    source_file                TEXT,
-    loaded_at                  TIMESTAMP NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS products (
+    item_code         TEXT PRIMARY KEY,
+    item_name         TEXT,
+    manufacturer_name TEXT,
+    quantity          NUMERIC(12,3),
+    unit_qty          TEXT,
+    is_weighted       BOOLEAN,
+    chain_count       INTEGER NOT NULL,
+    store_count       INTEGER NOT NULL,
+    min_price         NUMERIC(12,2),
+    max_price         NUMERIC(12,2)
 );
 
-CREATE INDEX IF NOT EXISTS idx_promo_supermarket ON promotions (supermarket_name);
-CREATE INDEX IF NOT EXISTS idx_promo_item_code   ON promotions (item_code);
-CREATE INDEX IF NOT EXISTS idx_promo_dates        ON promotions (promotion_start_date, promotion_end_date);
+CREATE INDEX IF NOT EXISTS idx_products_name_trgm ON products USING gin (item_name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_products_mfr_trgm  ON products USING gin (manufacturer_name gin_trgm_ops);
 
 -- ------------------------------------------------------------
--- טבלת סטטוס עזר: מתי כל רשת עודכנה לאחרונה (לתצוגה באתר)
+-- 4) יומן טעינה — איזה קובץ נטען אחרון לכל סניף (מונע דריסה של
+--    תמונת מצב חדשה בישנה, ומציג באתר מתי הנתונים עודכנו)
 -- ------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS load_log (
-    id                BIGSERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS store_snapshots (
+    chain_id          TEXT NOT NULL,
+    store_id          TEXT NOT NULL,
     supermarket_name  TEXT NOT NULL,
-    table_name        TEXT NOT NULL,
+    source_file       TEXT NOT NULL,
+    file_timestamp    TIMESTAMP,
     rows_loaded       INTEGER NOT NULL,
-    loaded_at         TIMESTAMP NOT NULL DEFAULT now()
+    loaded_at         TIMESTAMP NOT NULL DEFAULT now(),
+    PRIMARY KEY (chain_id, store_id)
 );
