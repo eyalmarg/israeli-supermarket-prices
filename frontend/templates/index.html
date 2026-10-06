@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>השוואת מחירי סופרמרקטים</title>
+<title>מחיר·עגלה — השוואת מחירי סופרמרקטים</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -15,35 +15,58 @@
   <div class="header-inner">
     <h1 class="brand">מחיר<span class="brand-accent">·</span>עגלה</h1>
     <p class="tagline">השוואת מחירי סופר, ישירות מקובצי שקיפות המחירים הרשמיים</p>
+    <p class="regular-note">מחירים רגילים בלבד · ללא מבצעים וללא הנחות מועדון</p>
   </div>
-  <div id="stats-bar" class="stats-bar">טוען נתוני מסד...</div>
+  <div id="stats-bar" class="stats-bar">טוען נתונים...</div>
 </header>
 
 <main>
   <section class="search-hero">
     <label for="search-input" class="search-label">מה מחפשים היום?</label>
     <div class="search-box">
-      <input id="search-input" type="text" placeholder="למשל: חלב 3% תנובה, קוטג׳, לחם אחיד..." autocomplete="off">
-      <button id="search-btn" type="button">חפש</button>
+      <input id="search-input" type="search" placeholder="למשל: חלב 3% תנובה, קוטג׳, או ברקוד" autocomplete="off">
+      <button id="search-btn" type="button">חיפוש</button>
     </div>
-    <p class="search-hint">הקלידו לפחות 2 תווים · התוצאות ממוינות לפי מספר הרשתות שמוכרות את הפריט</p>
+    <div class="city-row">
+      <label for="city-select">אזור:</label>
+      <select id="city-select">
+        <option value="">כל הארץ</option>
+      </select>
+    </div>
+    <p class="search-hint">אפשר לחפש לפי כמה מילים (כולן יופיעו בשם או ביצרן) · התוצאות ממוינות לפי מספר הרשתות שמוכרות את המוצר</p>
   </section>
 
   <section id="results" class="results" aria-live="polite"></section>
 
-  <section id="compare-panel" class="compare-panel hidden">
-    <button id="close-compare" class="close-btn" type="button">✕ סגירה</button>
-    <h2 id="compare-title"></h2>
-    <div id="compare-list" class="compare-list"></div>
+  <section id="product-panel" class="panel hidden" aria-live="polite">
+    <button class="close-btn" type="button" data-close="product-panel">✕ סגירה</button>
+    <div id="product-body"></div>
+  </section>
+
+  <section id="basket-panel" class="panel hidden">
+    <button class="close-btn" type="button" data-close="basket-panel">✕ סגירה</button>
+    <h2 class="panel-title">הסל שלי</h2>
+    <div id="basket-items"></div>
+    <div class="basket-actions">
+      <button id="basket-compare" type="button" class="primary-btn">השוואת הסל בין הרשתות</button>
+      <button id="basket-clear" type="button" class="link-btn">ריקון הסל</button>
+    </div>
+    <div id="basket-results"></div>
   </section>
 </main>
+
+<button id="basket-fab" class="basket-fab" type="button" aria-label="פתיחת הסל">
+  🛒 הסל <span id="basket-count" class="fab-count">0</span>
+</button>
 
 <footer class="site-footer">
   <p>
     הנתונים נאספים מקובצי המחירים שכל רשת מחויבת לפרסם לפי
-    חוק קידום התחרות בענפי המזון והפארם (חוק שקיפות מחירים).
-    כלי אישי/מקומי — לא לשימוש מסחרי. המחירים עשויים להשתנות ולא תמיד עדכניים לרגע זה.
+    <a href="https://www.gov.il/he/pages/cpfta_prices_regulations" target="_blank" rel="noopener">חוק קידום התחרות בענף המזון (שקיפות מחירים)</a>.
+    מוצגים המחירים הרגילים על המדף בלבד — מבצעים לא נכללים.
+    המחירים עשויים להשתנות ולא תמיד עדכניים לרגע זה.
   </p>
+  <p id="chains-list" class="chains-list"></p>
 </footer>
 
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>

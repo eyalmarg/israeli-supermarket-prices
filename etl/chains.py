@@ -1,57 +1,57 @@
 """
-מיפוי בין קודי הרשתות הפנימיים של il_supermarket_scarper
-(כפי שמופיעים ב-ENABLED_SCRAPERS / בשם תיקיית ה-dump) לבין
-שם תצוגה בעברית לאתר.
+מיפוי בין שמות תיקיות ההורדה של il_supermarket_scarper (dumps/<תיקייה>)
+לבין שם תצוגה בעברית לאתר.
 
-הערה: חלק מהשמות הם ניחוש סביר על סמך שם הקוד (למשל MESHMAT_YOSEF,
-YELLOW, HET_COHEN) - אם משהו לא מדויק, פשוט עדכנו כאן את המילון.
-זה לא משפיע על תקינות הנתונים, רק על השם שמוצג באתר.
+הסקרייפר שומר כל רשת בתיקייה בשם CamelCase (למשל dumps/RamiLevy),
+ולכן המפתחות כאן הם שמות התיקיות האלה. אם שם מסוים לא מדויק — פשוט
+עדכנו כאן; זה משפיע רק על השם שמוצג באתר.
 """
 
 CHAIN_DISPLAY_NAMES = {
-    "BAREKET": "ברקת",
-    "YAYNO_BITAN_AND_CARREFOUR": "יינות ביתן / קרפור",
-    "COFIX": "קופיקס",
-    "CITY_MARKET_KIRYATGAT": "סיטי מרקט קרית גת",
-    "CITY_MARKET_SHOPS": "סיטי מרקט",
-    "DOR_ALON": "דור אלון",
-    "GOOD_PHARM": "גוד פארם",
-    "HAZI_HINAM": "חצי חינם",
-    "HET_COHEN": "ח. כהן",
-    "KESHET": "קשת טעמים",
-    "KING_STORE": "קינג סטור",
-    "MAAYAN_2000": "מעיין 2000",
-    "MAHSANI_ASHUK": "מחסני השוק",
-    "MAHSANI_ASHUK_NEW_SOURCE": "מחסני השוק",
-    "NETIV_HASED": "נתיב החסד",
-    "MESHMAT_YOSEF_1": "משק את יוסף",
-    "MESHMAT_YOSEF_2": "משק את יוסף",
-    "OSHER_AD": "אושר עד",
-    "POLIZER": "פוליצר",
-    "RAMI_LEVY": "רמי לוי",
-    "SALACH_DABACH": "סאלח דבאח",
-    "SHEFA_BARCART_ASHEM": "שפע ברכת השם",
-    "SHUFERSAL": "שופרסל",
-    "SHUK_AHIR": "שוק העיר",
-    "STOP_MARKET": "סטופ מרקט",
-    "SUPER_PHARM": "סופר פארם",
-    "SUPER_YUDA": "סופר יודה",
-    "SUPER_SAPIR": "סופר ספיר",
-    "FRESH_MARKET_AND_SUPER_DOSH": "פרש מרקט / סופר דוש",
-    "QUIK": "קוויק",
-    "TIV_TAAM": "טיב טעם",
-    "VICTORY": "ויקטורי",
-    "VICTORY_NEW_SOURCE": "ויקטורי",
-    "YELLOW": "ילו",
-    "YOHANANOF": "יוחננוף",
-    "ZOL_VEBEGADOL": "זול ובגדול",
-    "WOLT": "וולט מרקט",
+    "Bareket": "ברקת",
+    "YaynotBitanAndCarrefour": "יינות ביתן / קרפור",
+    "CityMarketKiryatGat": "סיטי מרקט קרית גת",
+    "CityMarketShops": "סיטי מרקט",
+    "DorAlon": "דור אלון",
+    "GoodPharm": "גוד פארם",
+    "HaziHinam": "חצי חינם",
+    "HetCohen": "ח. כהן",
+    "HetCohenNewSource": "ח. כהן",
+    "Keshet": "קשת טעמים",
+    "KingStore": "קינג סטור",
+    "Maayan2000": "מעיין 2000",
+    "MahsaniAShuk": "מחסני השוק",
+    "MahsaniAShukNewSource": "מחסני השוק",
+    "NetivHased": "נתיב החסד",
+    "MeshnatYosef1": "משנת יוסף",
+    "MeshnatYosef2": "משנת יוסף",
+    "Osherad": "אושר עד",
+    "Polizer": "פוליצר",
+    "RamiLevy": "רמי לוי",
+    "SalachDabach": "סאלח דבאח",
+    "ShefaBarcartAshem": "שפע ברכת השם",
+    "Shufersal": "שופרסל",
+    "ShukAhir": "שוק העיר",
+    "StopMarket": "סטופ מרקט",
+    "SuperPharm": "סופר פארם",
+    "SuperYuda": "סופר יודה",
+    "SuperSapir": "סופר ספיר",
+    "FreshMarketAndSuperDosh": "פרש מרקט / סופר דוש",
+    "TivTaam": "טיב טעם",
+    "Victory": "ויקטורי",
+    "VictoryNewSource": "ויקטורי",
+    "Yellow": "ילו",
+    "Yohananof": "יוחננוף",
+    "ZolVeBegadol": "זול ובגדול",
+    "Wolt": "וולט מרקט",
 }
 
+_BY_LOWER = {k.lower(): v for k, v in CHAIN_DISPLAY_NAMES.items()}
 
-def display_name(chain_code: str) -> str:
-    """מחזיר שם תצוגה בעברית לקוד רשת, או את הקוד עצמו אם לא נמצא מיפוי."""
-    if not chain_code:
+
+def display_name(folder_name: str) -> str:
+    """מחזיר שם תצוגה בעברית לתיקיית רשת, או את שם התיקייה עצמו אם לא נמצא מיפוי."""
+    if not folder_name:
         return "לא ידוע"
-    key = chain_code.strip().upper()
-    return CHAIN_DISPLAY_NAMES.get(key, chain_code)
+    key = folder_name.strip().replace("_", "").lower()
+    return _BY_LOWER.get(key, folder_name)

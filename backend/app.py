@@ -1,7 +1,8 @@
 import os
 import sys
-from flask import Flask, jsonify, request, render_template
+
 from dotenv import load_dotenv
+from flask import Flask, jsonify, render_template, request
 
 sys.path.insert(0, os.path.dirname(__file__))
 import queries  # noqa: E402
@@ -14,6 +15,13 @@ app = Flask(
     static_folder=os.path.join(os.path.dirname(__file__), "..", "frontend", "static"),
 )
 
+MAX_BASKET_ITEMS = 100
+
+
+def _city_arg():
+    city = request.args.get("city", "").strip()
+    return city or None
+
 
 @app.route("/")
 def index():
@@ -25,18 +33,38 @@ def api_search():
     term = request.args.get("q", "").strip()
     if len(term) < 2:
         return jsonify({"error": "נא להזין לפחות 2 תווים לחיפוש"}), 400
-    limit = min(int(request.args.get("limit", 30)), 100)
-    results = queries.search_products(term, limit=limit)
-    return jsonify(results)
+    return jsonify(queries.search_products(term))
 
 
-@app.route("/api/compare")
-def api_compare():
-    item_code = request.args.get("item_code", "").strip()
-    if not item_code:
-        return jsonify({"error": "נא לספק item_code"}), 400
-    results = queries.compare_item(item_code)
-    return jsonify(results)
+@app.route("/api/products/<item_code>")
+def api_product(item_code):
+    product = queries.get_product(item_code.strip(), city=_city_arg())
+    if product is None:
+        return jsonify({"error": "המוצר לא נמצא"}), 404
+    return jsonify(product)
+
+
+@app.route("/api/basket", methods=["POST"])
+def api_basket():
+    body = request.get_json(silent=True) or {}
+    items = []
+    for raw in (body.get("items") or [])[:MAX_BASKET_ITEMS]:
+        code = str(raw.get("item_code", "")).strip()
+        try:
+            qty = float(raw.get("qty", 1))
+        except (TypeError, ValueError):
+            qty = 1.0
+        if code and 0 < qty <= 1000:
+            items.append({"item_code": code, "qty": qty})
+    if not items:
+        return jsonify({"error": "הסל ריק"}), 400
+    city = (body.get("city") or "").strip() or None
+    return jsonify(queries.compare_basket(items, city=city))
+
+
+@app.route("/api/cities")
+def api_cities():
+    return jsonify(queries.list_cities())
 
 
 @app.route("/api/supermarkets")
@@ -51,4 +79,4 @@ def api_stats():
 
 if __name__ == "__main__":
     port = int(os.environ.get("FLASK_PORT", 5000))
-    app.run(debug=True, port=port)
+    app.run(debug=os.environ.get("FLASK_DEBUG") == "1", port=port)

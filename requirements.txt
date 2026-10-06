@@ -1,11 +1,12 @@
-# ---- הורדה ופירסור (חבילות קוד-פתוח חינמיות) ----
-il-supermarket-scraper>=0.6.6
-il-supermarket-parsers
+# ---- הורדת הקבצים מאתרי הרשתות (חבילת קוד-פתוח חינמית) ----
+il-supermarket-scraper>=1.0.8
+
+# ---- קריאת XML ----
+lxml>=5.0
 
 # ---- מסד נתונים ----
 psycopg2-binary>=2.9
 SQLAlchemy>=2.0
-pandas>=2.0
 
 # ---- שרת/API ----
 Flask>=3.0
